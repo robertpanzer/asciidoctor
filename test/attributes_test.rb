@@ -1067,6 +1067,67 @@ Text
       assert para.attributes.has_key?('option2-option')
     end
 
+    test 'roles can be added when the node has no role yet' do
+        input = <<-EOS
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.add_role 'role1'
+      assert_equal 'role1', para.attributes['role']
+      assert para.has_role? 'role1'
+    end
+
+    test 'roles can be added when the node already has a role yet' do
+        input = <<-EOS
+[.role1]
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.add_role 'role2'
+      assert_equal 'role1 role2', para.attributes['role']
+      assert para.has_role? 'role1'
+      assert para.has_role? 'role2'
+    end
+
+    test 'roles can be removed when the node has no role yet' do
+        input = <<-EOS
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.remove_role 'role1'
+      assert_equal nil, para.attributes['role']
+      assert !para.has_role?('role1')
+    end
+
+    test 'roles can be removed when the node has only other roles' do
+        input = <<-EOS
+[.role1]
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.remove_role 'role2'
+      assert_equal 'role1', para.attributes['role']
+      assert para.has_role? 'role1'
+      assert !para.has_role?('role2')
+    end
+
+    test 'roles can be removed' do
+        input = <<-EOS
+[.role1.role2]
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.remove_role 'role1'
+      assert_equal 'role2', para.attributes['role']
+      assert para.has_role? 'role1'
+      assert !para.has_role?('role2')
+    end
+
     test 'option can be specified in first position of block style using shorthand syntax' do
       input = <<-EOS
 [%interactive]
