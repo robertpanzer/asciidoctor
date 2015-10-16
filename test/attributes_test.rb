@@ -1067,7 +1067,7 @@ Text
       assert para.attributes.has_key?('option2-option')
     end
 
-    test 'roles can be added when the node has no role yet' do
+    test 'a role can be added using add_role when the node has no roles' do
         input = <<-EOS
 A normal paragraph        
         EOS
@@ -1078,7 +1078,7 @@ A normal paragraph
       assert para.has_role? 'role1'
     end
 
-    test 'roles can be added when the node already has a role yet' do
+    test 'a role can be added using add_role when the node already has a role' do
         input = <<-EOS
 [.role1]
 A normal paragraph        
@@ -1091,18 +1091,32 @@ A normal paragraph
       assert para.has_role? 'role2'
     end
 
-    test 'roles can be removed when the node has no role yet' do
+    test 'a role is not added using add_role if the node already has that role' do
         input = <<-EOS
+[.role1]
+A normal paragraph        
+        EOS
+      doc = document_from_string(input)
+      para = doc.blocks.first
+      para.add_role 'role1'
+      assert_equal 'role1', para.attributes['role']
+      assert para.has_role? 'role1'
+    end
+
+    test 'an existing role can be removed using remove_role' do
+        input = <<-EOS
+[.role1.role2]
 A normal paragraph        
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
       para.remove_role 'role1'
-      assert_equal nil, para.attributes['role']
+      assert_equal 'role2', para.attributes['role']
+      assert para.has_role? 'role2'
       assert !para.has_role?('role1')
     end
 
-    test 'roles can be removed when the node has only other roles' do
+    test 'roles are not changed when a non-existent role is removed using remove_role' do
         input = <<-EOS
 [.role1]
 A normal paragraph        
@@ -1115,17 +1129,15 @@ A normal paragraph
       assert !para.has_role?('role2')
     end
 
-    test 'roles can be removed' do
+    test 'roles are not changed when using remove_role if the node has no roles' do
         input = <<-EOS
-[.role1.role2]
 A normal paragraph        
         EOS
       doc = document_from_string(input)
       para = doc.blocks.first
       para.remove_role 'role1'
-      assert_equal 'role2', para.attributes['role']
-      assert para.has_role? 'role1'
-      assert !para.has_role?('role2')
+      assert_equal nil, para.attributes['role']
+      assert !para.has_role?('role1')
     end
 
     test 'option can be specified in first position of block style using shorthand syntax' do
